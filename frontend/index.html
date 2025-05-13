@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TOEFL Writing Practice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .question-section, .answer-section, .feedback-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .question-section {
+            background-color: #f0f8ff;
+        }
+        .answer-section {
+            background-color: #f5f5f5;
+        }
+        .feedback-section {
+            background-color: #f0fff0;
+            display: none;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #loading-indicator {
+            display: none;
+            padding: 15px;
+            background-color: #FFF3CD;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: bold;
+            color: #856404;
+        }
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="question-section">
+        <h2>TOEFL Writing Question</h2>
+        <p id="question">Do you agree or disagree with the following statement? Modern technology has made life more complicated. Use specific reasons and examples to support your answer.</p>
+    </div>
+
+    <div class="answer-section">
+        <textarea id="userAnswer" rows="10" cols="50" 
+                  placeholder="Type your answer here..."></textarea>
+        <button id="submitBtn" onclick="submitAnswer()">Submit for Review</button>
+    </div>
+
+    <div id="loading-indicator" class="pulse">
+        AI Processing... <span id="seconds-counter">0</span>s
+    </div>
+
+    <div id="feedback" class="feedback-section">
+        <!-- Results will be displayed here -->
+    </div>
+
+    <script>
+        const currentQuestionId = "1";
+        let processingTimer;
+        let secondsCount = 0;
+
+        async function submitAnswer() {
+            const answer = document.getElementById('userAnswer').value;
+            if (!answer.trim()) {
+                alert("Please type your answer before submitting");
+                return;
+            }
+            
+            // Show loading indicator and start timer
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const submitBtn = document.getElementById('submitBtn');
+            const secondsCounter = document.getElementById('seconds-counter');
+            
+            loadingIndicator.style.display = 'block';
+            submitBtn.disabled = true;
+            secondsCount = 0;
+            secondsCounter.textContent = secondsCount;
+            
+            processingTimer = setInterval(() => {
+                secondsCount++;
+                secondsCounter.textContent = secondsCount;
+            }, 1000);
+            
+            try {
+                const response = await fetch('http://localhost:3000/submit', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        answer,
+                        questionId: currentQuestionId 
+                    })
+                });
+                
+                // Stop timer and hide loading indicator
+                clearInterval(processingTimer);
+                loadingIndicator.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const feedback = await response.json();
+                displayFeedback(feedback);
+            } catch (error) {
+                // Stop timer and hide loading indicator on error too
+                clearInterval(processingTimer);
+                loadingIndicator.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                console.error('Error:', error);
+                alert("Failed to submit answer. Please try again later.");
+            }
+        }
+
+        function displayFeedback(feedback) {
+            const feedbackDiv = document.getElementById('feedback');
+            feedbackDiv.style.display = 'block';
+            
+            try {
+                // Parse feedback if it's a string (JSON)
+                const feedbackData = typeof feedback === 'string' ? JSON.parse(feedback) : feedback;
+                
+                let correctionsHTML = '<ul>';
+                feedbackData.corrections.forEach(correction => {
+                    correctionsHTML += `<li>${correction}</li>`;
+                });
+                correctionsHTML += '</ul>';
+                
+                let suggestionsHTML = '<ul>';
+                feedbackData.suggestions.forEach(suggestion => {
+                    suggestionsHTML += `<li>${suggestion}</li>`;
+                });
+                suggestionsHTML += '</ul>';
+                
+                feedbackDiv.innerHTML = `
+                    <h3>Feedback:</h3>
+                    <h4>Score: ${feedbackData.score}/30</h4>
+                    <h4>Corrections:</h4>
+                    ${correctionsHTML}
+                    <h4>Suggestions:</h4>
+                    ${suggestionsHTML}
+                `;
+            } catch (e) {
+                feedbackDiv.innerHTML = `
+                    <h3>Feedback:</h3>
+                    <div>${feedback}</div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 
