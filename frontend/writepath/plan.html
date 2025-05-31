@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Write Track Lite - Your Learning Plan</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .plan-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .plan-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .plan-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .plan-summary {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .progress-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .progress-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .progress-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(#667eea 0deg, #667eea var(--progress), #e9ecef var(--progress), #e9ecef 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #2c3e50;
+            position: relative;
+        }
+
+        .progress-circle::before {
+            content: '';
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .progress-text {
+            z-index: 1;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .weekly-goal {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .weekly-goal h3 {
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .daily-tasks {
+            display: grid;
+            gap: 20px;
+        }
+
+        .day-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .day-card.completed {
+            background: #e8f5e8;
+            border-left-color: #28a745;
+        }
+
+        .day-card.current {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.2);
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .day-number {
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .day-card.completed .day-number {
+            background: #28a745;
+        }
+
+        .day-card.current .day-number {
+            background: #ff9800;
+        }
+
+        .day-title {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .day-title h3 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .focus-area {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .completion-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .completion-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .completion-btn.completed {
+            background: #28a745;
+            cursor: default;
+        }
+
+        .completion-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .tasks-list {
+            margin: 15px 0;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            color: #34495e;
+        }
+
+        .task-item::before {
+            content: '•';
+            color: #667eea;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .learning-objective {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .objective-label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .objective-text {
+            color: #34495e;
+            font-size: 0.95rem;
+        }
+
+        .estimated-time {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .success-metrics {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .success-metrics h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .metrics-list {
+            list-style: none;
+        }
+
+        .metrics-list li {
+            padding: 8px 0;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+        }
+
+        .metrics-list li::before {
+            content: '🎯';
+            margin-right: 10px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .plan-card {
+                padding: 25px;
+            }
+
+            .progress-section {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .day-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your Learning Plan</h1>
+            <p>Your personalized 7-day writing improvement journey</p>
+        </div>
+
+        <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+            <h3>Loading your learning plan...</h3>
+        </div>
+
+        <div id="errorState" class="error" style="display: none;">
+            <h4>Unable to load learning plan</h4>
+            <p>Please try generating a new plan or contact support.</p>
+        </div>
+
+        <div id="planContent" style="display: none;">
+            <div class="plan-card">
+                <div class="plan-header">
+                    <h2 class="plan-title" id="planTitle">Your Personalized Learning Plan</h2>
+                    <p class="plan-summary" id="planSummary">Loading plan details...</p>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-info">
+                        <div class="progress-circle" id="progressCircle">
+                            <span class="progress-text" id="progressText">0%</span>
+                        </div>
+                        <div>
+                            <h4>Weekly Progress</h4>
+                            <p id="progressStatus">Getting started...</p>
+                        </div>
+                    </div>
+                    <div id="currentDayInfo">
+                        <span id="currentDayText">Day 1</span>
+                    </div>
+                </div>
+
+                <div class="weekly-goal" id="weeklyGoal">
+                    <h3>Weekly Goal</h3>
+                    <p id="goalText">Loading goal...</p>
+                </div>
+
+                <div class="daily-tasks" id="dailyTasks">
+                    <!-- Daily tasks will be loaded here -->
+                </div>
+
+                <div class="success-metrics">
+                    <h3>📈 Success Metrics</h3>
+                    <ul class="metrics-list" id="metricsList">
+                        <!-- Success metrics will be loaded here -->
+                    </ul>
+                </div>
+
+                <div class="actions">
+                    <a href="/dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+                    <a href="/index.html" class="btn">Start Practice</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userId = null;
+        let learningPlan = null;
+        let progress = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get user ID from URL params or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            userId = urlParams.get('user_id') || localStorage.getItem('writetrack_user_id');
+
+            if (!userId) {
+                showError('No user ID found. Please complete an assessment first.');
+                return;
+            }
+
+            loadLearningPlan();
+        });
+
+        async function loadLearningPlan() {
+            try {
+                const response = await fetch(`/api/writepath/plan/${userId}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        // No plan exists, try to generate one
+                        await generateLearningPlan();
+                        return;
+                    }
+                    throw new Error('Failed to load learning plan');
+                }
+
+                const data = await response.json();
+                learningPlan = data.learning_plan;
+                progress = data.progress;
+
+                displayLearningPlan();
+                
+            } catch (error) {
+                console.error('Error loading learning plan:', error);
+                showError('Failed to load your learning plan. Please try again.');
+            }
+        }
+
+        async function generateLearningPlan() {
+            try {
+                const response = await fetch('/api/writepath/generate-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate learning plan');
+                }
+
+                const data = await response.json();
+                learningPlan = data.learning_plan;
+                progress = { completed_days: [], current_day: 1, completion_percentage: 0 };
+
+                displayLearningPlan();
+                
+            } catch (error) {
+                console.error('Error generating learning plan:', error);
+                showError('Failed to generate your learning plan. Please ensure you have completed an assessment.');
+            }
+        }
+
+        function displayLearningPlan() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('planContent').style.display = 'block';
+
+            // Update plan header
+            document.getElementById('planTitle').textContent = learningPlan.plan_title;
+            document.getElementById('planSummary').textContent = learningPlan.plan_summary;
+            document.getElementById('goalText').textContent = learningPlan.weekly_goal;
+
+            // Update progress
+            updateProgressDisplay();
+
+            // Display daily tasks
+            displayDailyTasks();
+
+            // Display success metrics
+            displaySuccessMetrics();
+        }
+
+        function updateProgressDisplay() {
+            const completedDays = progress.completed_days.length;
+            const percentage = Math.round((completedDays / 7) * 100);
+            
+            // Update progress circle
+            const progressCircle = document.getElementById('progressCircle');
+            progressCircle.style.setProperty('--progress', `${percentage * 3.6}deg`);
+            document.getElementById('progressText').textContent = `${percentage}%`;
+
+            // Update progress status
+            const statusText = completedDays === 0 ? 'Getting started...' :
+                              completedDays === 7 ? 'Plan completed! 🎉' :
+                              `${completedDays} of 7 days completed`;
+            document.getElementById('progressStatus').textContent = statusText;
+
+            // Update current day info
+            document.getElementById('currentDayText').textContent = 
+                progress.current_day > 7 ? 'Completed!' : `Day ${progress.current_day}`;
+        }
+
+        function displayDailyTasks() {
+            const container = document.getElementById('dailyTasks');
+            container.innerHTML = '';
+
+            learningPlan.daily_tasks.forEach(day => {
+                const isCompleted = progress.completed_days.includes(day.day);
+                const isCurrent = day.day === progress.current_day && !isCompleted;
+
+                const dayCard = document.createElement('div');
+                dayCard.className = `day-card ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`;
+
+                dayCard.innerHTML = `
+                    <div class="day-header">
+                        <div class="day-number">${day.day}</div>
+                        <div class="day-title">
+                            <h3>${day.title}</h3>
+                            <div class="focus-area">Focus: ${day.focus_area}</div>
+                        </div>
+                        <button class="completion-btn ${isCompleted ? 'completed' : ''}" 
+                                onclick="toggleDayCompletion(${day.day})"
+                                ${isCompleted ? 'disabled' : ''}>
+                            ${isCompleted ? '✓ Completed' : 'Mark Complete'}
+                        </button>
+                    </div>
+                    <div class="tasks-list">
+                        ${day.tasks.map(task => `<div class="task-item">${task}</div>`).join('')}
+                    </div>
+                    <div class="learning-objective">
+                        <div class="objective-label">Learning Objective:</div>
+                        <div class="objective-text">${day.learning_objective}</div>
+                    </div>
+                    <div class="estimated-time">⏱️ ${day.estimated_time}</div>
+                `;
+
+                container.appendChild(dayCard);
+            });
+        }
+
+        function displaySuccessMetrics() {
+            const container = document.getElementById('metricsList');
+            container.innerHTML = '';
+
+            learningPlan.success_metrics.forEach(metric => {
+                const li = document.createElement('li');
+                li.textContent = metric;
+                container.appendChild(li);
+            });
+        }
+
+        async function toggleDayCompletion(dayNumber) {
+            try {
+                const response = await fetch('/api/writepath/plan/progress', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        completed_day: dayNumber
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update progress');
+                }
+
+                const data = await response.json();
+                progress = data.progress;
+
+                // Update display
+                updateProgressDisplay();
+                displayDailyTasks();
+
+                // Show completion message for day 7
+                if (dayNumber === 7) {
+                    setTimeout(() => {
+                        alert('🎉 Congratulations! You have completed your 7-day learning plan!');
+                    }, 500);
+                }
+
+            } catch (error) {
+                console.error('Error updating progress:', error);
+                alert('Failed to update progress. Please try again.');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            const errorState = document.getElementById('errorState');
+            errorState.querySelector('p').textContent = message;
+            errorState.style.display = 'block';
+        }
+    </script>
+</body>
+</html> 
