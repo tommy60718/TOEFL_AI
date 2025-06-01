@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write Track Lite - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #70dca9 0%, #5b95dc 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #10b981;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .dashboard-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .value {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .card-actions {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #2563eb 100%);
+            transform: translateY(-1px);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            transition: width 0.3s ease;
+        }
+
+        .plan-title {
+            font-weight: 500;
+            color: #374151;
+            margin-top: 5px;
+        }
+
+        .assessment-score {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .score-badge {
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .level-badge {
+            background: #ecfdf5;
+            color: #047857;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .practice-stats p {
+            margin: 5px 0;
+            color: #374151;
+        }
+
+        .quick-actions {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .quick-actions h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .quick-action-btn {
+            background: #f8f9fa;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-action-btn:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+            transform: translateY(-2px);
+        }
+
+        .quick-action-btn .icon {
+            font-size: 24px;
+        }
+
+        .quick-action-btn span:last-child {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .profile-info {
+            margin-bottom: 15px;
+        }
+
+        .profile-info label {
+            font-weight: 600;
+            color: #555;
+            display: inline-block;
+            width: 120px;
+        }
+
+        .score-display {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #10b981;
+        }
+
+        .score-level {
+            font-size: 1.2rem;
+            color: #666;
+            text-transform: capitalize;
+        }
+
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #2563eb 100%);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .goals-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .goals-list li {
+            background: #f0fdf4;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border-left: 3px solid #10b981;
+        }
+
+        .weak-areas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .weak-area-tag {
+            background: #fff3e0;
+            color: #f57c00;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            border: 1px solid #ffcc02;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Write Track Lite Dashboard</h1>
+        <p>Your personalized writing improvement journey</p>
+    </div>
+
+    <div class="container">
+        <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+            <h3>Loading your dashboard...</h3>
+        </div>
+
+        <div id="errorState" class="error-message" style="display: none;">
+            <h4>Unable to load dashboard</h4>
+            <p>Please try refreshing the page or <a href="/assessment.html">start a new assessment</a>.</p>
+        </div>
+
+        <div id="dashboardContent" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="proficiencyScore">--</div>
+                    <div class="stat-label">Current Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="proficiencyLevel">--</div>
+                    <div class="stat-label">Proficiency Level</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedDays">--</div>
+                    <div class="stat-label">Learning Plan Progress</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="practiceScore">--</div>
+                    <div class="stat-label">Recent Practice Avg</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Profile Section -->
+                <div class="dashboard-card">
+                    <h3>📋 Your Profile</h3>
+                    <div id="profileDetails"></div>
+                    <div class="card-actions">
+                        <button class="action-btn" onclick="takeAssessment()">Take New Assessment</button>
+                    </div>
+                </div>
+
+                <!-- Learning Plan Section -->
+                <div class="dashboard-card" id="learningPlanCard">
+                    <h3>🎯 Learning Plan</h3>
+                    <div id="learningPlanSummary">
+                        <p>Complete an assessment to generate your personalized learning plan.</p>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn" id="planActionBtn" onclick="generatePlan()">Generate Plan</button>
+                    </div>
+                </div>
+
+                <!-- Assessment Results -->
+                <div class="dashboard-card">
+                    <h3>📊 Latest Assessment</h3>
+                    <div id="assessmentSummary"></div>
+                    <div class="card-actions">
+                        <button class="action-btn" onclick="viewFullResults()">View Details</button>
+                    </div>
+                </div>
+
+                <!-- Practice Sessions -->
+                <div class="dashboard-card">
+                    <h3>✍️ Recent Practice</h3>
+                    <div id="practiceSummary">
+                        <p>No practice sessions yet. Start practicing to see your progress!</p>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn" onclick="startPractice()">Start Practice</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3>Quick Actions</h3>
+                <div class="actions-grid">
+                    <button class="quick-action-btn" onclick="startPractice()">
+                        <span class="icon">✍️</span>
+                        <span>Practice Writing</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="viewLearningPlan()">
+                        <span class="icon">📋</span>
+                        <span>View Learning Plan</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="takeAssessment()">
+                        <span class="icon">📊</span>
+                        <span>Take Assessment</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="viewProgress()">
+                        <span class="icon">📈</span>
+                        <span>View Progress</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userId = null;
+        let userProfile = null;
+        let assessmentResults = null;
+        let learningPlan = null;
+        let practiceSessions = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get user ID from URL params or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            userId = urlParams.get('user_id') || localStorage.getItem('writetrack_user_id');
+
+            if (!userId) {
+                showError('No user found. Please complete an assessment first.');
+                return;
+            }
+
+            // Store user ID for future use
+            localStorage.setItem('writetrack_user_id', userId);
+            
+            loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Load all dashboard data in parallel
+                await Promise.all([
+                    loadUserProfile(),
+                    loadAssessmentResults(),
+                    loadLearningPlan(),
+                    loadPracticeSessions()
+                ]);
+                
+                updateDashboardDisplay();
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showError('Failed to load dashboard data. Please try again.');
+            }
+        }
+
+        async function loadUserProfile() {
+            try {
+                const response = await fetch(`/api/writepath/profile/${userId}`);
+                if (response.ok) {
+                    userProfile = await response.json();
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function loadAssessmentResults() {
+            try {
+                const response = await fetch(`/api/writepath/results/${userId}`);
+                if (response.ok) {
+                    assessmentResults = await response.json();
+                }
+            } catch (error) {
+                console.error('Error loading assessment results:', error);
+            }
+        }
+
+        async function loadLearningPlan() {
+            try {
+                const response = await fetch(`/api/writepath/plan/${userId}`);
+                if (response.ok) {
+                    learningPlan = await response.json();
+                }
+            } catch (error) {
+                console.error('Error loading learning plan:', error);
+            }
+        }
+
+        async function loadPracticeSessions() {
+            try {
+                const response = await fetch(`/api/writenow/sessions/${userId}`);
+                if (response.ok) {
+                    practiceSessions = await response.json();
+                }
+            } catch (error) {
+                console.error('Error loading practice sessions:', error);
+            }
+        }
+
+        function updateDashboardDisplay() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+
+            // Update stats grid
+            updateStatsGrid();
+
+            // Update profile section
+            updateProfileSection();
+
+            // Update learning plan section
+            updateLearningPlanSection();
+
+            // Update assessment section
+            updateAssessmentSection();
+
+            // Update practice section
+            updatePracticeSection();
+        }
+
+        function updateStatsGrid() {
+            // Proficiency score
+            if (assessmentResults?.latest_assessment?.proficiency_score) {
+                document.getElementById('proficiencyScore').textContent = assessmentResults.latest_assessment.proficiency_score;
+            }
+
+            // Proficiency level
+            if (userProfile?.proficiency_level) {
+                document.getElementById('proficiencyLevel').textContent = 
+                    userProfile.proficiency_level.charAt(0).toUpperCase() + userProfile.proficiency_level.slice(1);
+            }
+
+            // Learning plan progress
+            if (learningPlan?.progress?.completed_days) {
+                const completed = learningPlan.progress.completed_days.length;
+                document.getElementById('completedDays').textContent = `${completed}/7`;
+            }
+
+            // Practice average
+            if (practiceSessions?.average_score) {
+                document.getElementById('practiceScore').textContent = practiceSessions.average_score;
+            }
+        }
+
+        function updateProfileSection() {
+            const profileDetails = document.getElementById('profileDetails');
+            
+            if (userProfile) {
+                const goals = userProfile.learning_goals ? userProfile.learning_goals.join(', ') : 'None specified';
+                profileDetails.innerHTML = `
+                    <div class="info-item">
+                        <span class="label">Type:</span>
+                        <span class="value">${userProfile.user_type.toUpperCase()}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Level:</span>
+                        <span class="value">${userProfile.proficiency_level || 'Not assessed'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Goals:</span>
+                        <span class="value">${goals}</span>
+                    </div>
+                `;
+            } else {
+                profileDetails.innerHTML = '<p>Loading profile...</p>';
+            }
+        }
+
+        function updateLearningPlanSection() {
+            const summary = document.getElementById('learningPlanSummary');
+            const actionBtn = document.getElementById('planActionBtn');
+            
+            if (learningPlan?.learning_plan) {
+                const progress = learningPlan.progress || { completed_days: [], completion_percentage: 0 };
+                summary.innerHTML = `
+                    <div class="plan-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress.completion_percentage || 0}%"></div>
+                        </div>
+                        <p>${progress.completed_days?.length || 0} of 7 days completed</p>
+                        <p class="plan-title">${learningPlan.learning_plan.plan_title}</p>
+                    </div>
+                `;
+                actionBtn.textContent = 'View Plan';
+                actionBtn.onclick = viewLearningPlan;
+            } else if (assessmentResults?.latest_assessment) {
+                summary.innerHTML = '<p>Assessment completed! Generate your personalized learning plan.</p>';
+                actionBtn.textContent = 'Generate Plan';
+                actionBtn.onclick = generatePlan;
+            }
+        }
+
+        function updateAssessmentSection() {
+            const summary = document.getElementById('assessmentSummary');
+            
+            if (assessmentResults?.latest_assessment) {
+                const assessment = assessmentResults.latest_assessment;
+                const weakAreas = assessment.weak_areas || [];
+                
+                summary.innerHTML = `
+                    <div class="assessment-score">
+                        <span class="score-badge">${assessment.proficiency_score}/30</span>
+                        <span class="level-badge">${assessment.analysis_result?.proficiency_level || 'N/A'}</span>
+                    </div>
+                    <div class="weak-areas">
+                        <p><strong>Focus Areas:</strong> ${weakAreas.slice(0, 3).join(', ')}</p>
+                    </div>
+                `;
+            } else {
+                summary.innerHTML = '<p>No assessment completed yet. Take an assessment to get started!</p>';
+            }
+        }
+
+        function updatePracticeSection() {
+            const summary = document.getElementById('practiceSummary');
+            
+            if (practiceSessions?.recent_sessions?.length > 0) {
+                const recentSession = practiceSessions.recent_sessions[0];
+                summary.innerHTML = `
+                    <div class="practice-stats">
+                        <p><strong>Total Sessions:</strong> ${practiceSessions.total_sessions}</p>
+                        <p><strong>Average Score:</strong> ${practiceSessions.average_score}/30</p>
+                        <p><strong>Last Session:</strong> ${new Date(recentSession.timestamp).toLocaleDateString()}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Navigation functions
+        function takeAssessment() {
+            window.location.href = '/assessment.html' + (userId ? `?user_id=${userId}` : '');
+        }
+
+        function generatePlan() {
+            if (!assessmentResults?.latest_assessment) {
+                alert('Please complete an assessment first to generate a learning plan.');
+                takeAssessment();
+                return;
+            }
+            
+            // Show loading state
+            const actionBtn = document.getElementById('planActionBtn');
+            actionBtn.textContent = 'Generating...';
+            actionBtn.disabled = true;
+            
+            // Generate plan and redirect
+            fetch('/api/writepath/generate-plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.learning_plan) {
+                    window.location.href = `/writepath/plan.html?user_id=${userId}`;
+                } else {
+                    throw new Error('Failed to generate plan');
+                }
+            })
+            .catch(error => {
+                console.error('Error generating plan:', error);
+                alert('Failed to generate learning plan. Please try again.');
+                actionBtn.textContent = 'Generate Plan';
+                actionBtn.disabled = false;
+            });
+        }
+
+        function viewLearningPlan() {
+            if (learningPlan?.learning_plan) {
+                window.location.href = `/writepath/plan.html?user_id=${userId}`;
+            } else {
+                generatePlan();
+            }
+        }
+
+        function startPractice() {
+            window.location.href = `/index.html?user_id=${userId}`;
+        }
+
+        function viewFullResults() {
+            if (assessmentResults?.latest_assessment) {
+                // Could create a detailed results page or show modal
+                alert('Detailed results view coming soon!');
+            } else {
+                takeAssessment();
+            }
+        }
+
+        function viewProgress() {
+            // Could create a progress tracking page
+            alert('Detailed progress tracking coming soon!');
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            const errorState = document.getElementById('errorState');
+            errorState.querySelector('p').textContent = message;
+            errorState.style.display = 'block';
+        }
+    </script>
+</body>
+</html> 
