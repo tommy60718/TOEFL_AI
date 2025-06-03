@@ -298,7 +298,7 @@
                     </div>
 
                     <div class="button-group">
-                        <button type="button" class="btn" onclick="nextStep()">Next Step</button>
+                        <button type="button" class="btn" onclick="assessment.nextStep()">Next Step</button>
                     </div>
                 </form>
             </div>
@@ -324,8 +324,8 @@
                     </div>
 
                     <div class="button-group">
-                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
-                        <button type="button" class="btn" onclick="submitAssessment()">Analyze My Writing</button>
+                        <button type="button" class="btn btn-secondary" onclick="assessment.prevStep()">Previous</button>
+                        <button type="button" class="btn" onclick="assessment.submitAssessment()">Analyze My Writing</button>
                     </div>
                 </form>
             </div>
@@ -353,228 +353,22 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn" onclick="goToDashboard()">View My Learning Path</button>
-                    <button type="button" class="btn btn-secondary" onclick="startPractice()">Start Practice Now</button>
+                    <button type="button" class="btn" onclick="assessment.goToDashboard()">View My Learning Path</button>
+                    <button type="button" class="btn btn-secondary" onclick="assessment.startPractice()">Start Practice Now</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        let currentStep = 1;
-        let userId = null;
-        let assessmentData = {};
-
-        // Word count functionality
-        document.getElementById('sampleWriting').addEventListener('input', function() {
-            const text = this.value;
-            const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-            document.getElementById('wordCount').textContent = wordCount;
-        });
-
-        // Show/hide target score based on user type
-        document.getElementById('userType').addEventListener('change', function() {
-            const targetScoreGroup = document.getElementById('targetScoreGroup');
-            if (this.value === 'toefl') {
-                targetScoreGroup.style.display = 'block';
-            } else {
-                targetScoreGroup.style.display = 'none';
-            }
-        });
-
-        function updateProgress() {
-            const progressBar = document.getElementById('progressBar');
-            const progress = (currentStep / 4) * 100;
-            progressBar.style.width = progress + '%';
-        }
-
-        function showStep(stepNumber) {
-            // Hide all steps
-            const steps = document.querySelectorAll('.step');
-            steps.forEach(step => step.classList.remove('active'));
-            
-            // Show current step
-            document.getElementById('step' + stepNumber).classList.add('active');
-            
-            updateProgress();
-        }
-
-        function nextStep() {
-            if (currentStep === 1) {
-                if (validateProfileForm()) {
-                    currentStep++;
-                    showStep(currentStep);
-                }
-            }
-        }
-
-        function prevStep() {
-            if (currentStep > 1) {
-                currentStep--;
-                showStep(currentStep);
-            }
-        }
-
-        function validateProfileForm() {
-            const userType = document.getElementById('userType').value;
-            if (!userType) {
-                alert('Please select your writing focus area.');
-                return false;
-            }
-
-            const goals = document.querySelectorAll('input[type="checkbox"]:checked');
-            if (goals.length === 0) {
-                alert('Please select at least one learning goal.');
-                return false;
-            }
-
-            return true;
-        }
-
-        async function submitAssessment() {
-            const sampleWriting = document.getElementById('sampleWriting').value.trim();
-            
-            if (!sampleWriting) {
-                alert('Please write a response to the prompt.');
-                return;
-            }
-
-            if (sampleWriting.split(/\s+/).length < 50) {
-                alert('Please write at least 50 words for a meaningful assessment.');
-                return;
-            }
-
-            // Move to processing step
-            currentStep = 3;
-            showStep(currentStep);
-
-            try {
-                // First, create user profile
-                await createUserProfile();
-                
-                // Then conduct assessment
-                await conductAssessment(sampleWriting);
-                
-                // Show results
-                currentStep = 4;
-                showStep(currentStep);
-                
-            } catch (error) {
-                console.error('Assessment error:', error);
-                alert('Sorry, there was an error processing your assessment. Please try again.');
-                currentStep = 2;
-                showStep(currentStep);
-            }
-        }
-
-        async function createUserProfile() {
-            const userType = document.getElementById('userType').value;
-            const targetScore = document.getElementById('targetScore').value;
-            const goals = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-                .map(cb => cb.value);
-
-            const profileData = {
-                user_type: userType,
-                target_score: targetScore ? parseInt(targetScore) : null,
-                learning_goals: goals
-            };
-
-            const response = await fetch('/api/writepath/profile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(profileData)
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to create user profile');
-            }
-
-            const result = await response.json();
-            userId = result.user_id;
-            
-            // Store user ID in localStorage for future use
-            localStorage.setItem('writetrack_user_id', userId);
-        }
-
-        async function conductAssessment(sampleWriting) {
-            const assessmentRequest = {
-                user_id: userId,
-                sample_writing: sampleWriting,
-                assessment_type: 'initial'
-            };
-
-            const response = await fetch('/api/writepath/assess', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(assessmentRequest)
-            });
-
-            if (!response.ok) {
-                throw new Error('Assessment failed');
-            }
-
-            const result = await response.json();
-            assessmentData = result.assessment_result;
-            
-            displayResults(assessmentData);
-        }
-
-        function displayResults(results) {
-            const resultsContainer = document.getElementById('assessmentResults');
-            
-            const resultsHTML = `
-                <div style="margin-bottom: 30px;">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <div style="font-size: 3rem; font-weight: bold; color: #667eea;">${results.proficiency_score}/30</div>
-                        <div style="font-size: 1.2rem; color: #666; text-transform: capitalize;">${results.proficiency_level} Level</div>
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-                    <div style="background: #e8f5e8; padding: 20px; border-radius: 10px;">
-                        <h4 style="color: #2e7d32; margin-bottom: 15px;">✓ Your Strengths</h4>
-                        <ul style="list-style: none; padding: 0;">
-                            ${results.strengths.map(strength => `<li style="margin-bottom: 8px;">• ${strength}</li>`).join('')}
-                        </ul>
-                    </div>
-                    
-                    <div style="background: #fff3e0; padding: 20px; border-radius: 10px;">
-                        <h4 style="color: #f57c00; margin-bottom: 15px;">⚡ Areas to Focus</h4>
-                        <ul style="list-style: none; padding: 0;">
-                            ${results.weak_areas.map(area => `<li style="margin-bottom: 8px;">• ${area.charAt(0).toUpperCase() + area.slice(1)}</li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
-
-                <div style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <h4 style="margin-bottom: 15px;">📋 Recommended Next Steps</h4>
-                    <ol style="padding-left: 20px;">
-                        ${results.recommendations.map(rec => `<li style="margin-bottom: 10px;">${rec}</li>`).join('')}
-                    </ol>
-                </div>
-            `;
-            
-            resultsContainer.innerHTML = resultsHTML;
-        }
-
-        function goToDashboard() {
-            // For now, redirect to main page - will be enhanced in later phases
-            window.location.href = '/dashboard.html?user_id=' + userId;
-        }
-
-        function startPractice() {
-            // For now, redirect to original practice page
-            window.location.href = '/index.html';
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            showStep(1);
-        });
-    </script>
+    <!-- JavaScript Modules (Load in Order) -->
+    <!-- Core modules first -->
+    <script src="js/api-client.js"></script>
+    <script src="js/user-manager.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    
+    <!-- Page-specific module -->
+    <script src="js/assessment.js"></script>
+    
+    <!-- All assessment logic is now in assessment.js module -->
 </body>
 </html> 

@@ -439,7 +439,7 @@
                     <h3>📋 Your Profile</h3>
                     <div id="profileDetails"></div>
                     <div class="card-actions">
-                        <button class="action-btn" onclick="takeAssessment()">Take New Assessment</button>
+                        <button class="action-btn" onclick="dashboard.takeAssessment()">Take New Assessment</button>
                     </div>
                 </div>
 
@@ -450,7 +450,7 @@
                         <p>Complete an assessment to generate your personalized learning plan.</p>
                     </div>
                     <div class="card-actions">
-                        <button class="action-btn" id="planActionBtn" onclick="generatePlan()">Generate Plan</button>
+                        <button class="action-btn" id="planActionBtn" onclick="dashboard.generatePlan()">Generate Plan</button>
                     </div>
                 </div>
 
@@ -459,7 +459,7 @@
                     <h3>📊 Latest Assessment</h3>
                     <div id="assessmentSummary"></div>
                     <div class="card-actions">
-                        <button class="action-btn" onclick="viewFullResults()">View Details</button>
+                        <button class="action-btn" onclick="dashboard.viewFullResults()">View Details</button>
                     </div>
                 </div>
 
@@ -470,7 +470,7 @@
                         <p>No practice sessions yet. Start practicing to see your progress!</p>
                     </div>
                     <div class="card-actions">
-                        <button class="action-btn" onclick="startPractice()">Start Practice</button>
+                        <button class="action-btn" onclick="dashboard.startPractice()">Start Practice</button>
                     </div>
                 </div>
             </div>
@@ -479,19 +479,19 @@
             <div class="quick-actions">
                 <h3>Quick Actions</h3>
                 <div class="actions-grid">
-                    <button class="quick-action-btn" onclick="startPractice()">
+                    <button class="quick-action-btn" onclick="dashboard.startPractice()">
                         <span class="icon">✍️</span>
                         <span>Practice Writing</span>
                     </button>
-                    <button class="quick-action-btn" onclick="viewLearningPlan()">
+                    <button class="quick-action-btn" onclick="dashboard.viewLearningPlan()">
                         <span class="icon">📋</span>
                         <span>View Learning Plan</span>
                     </button>
-                    <button class="quick-action-btn" onclick="takeAssessment()">
+                    <button class="quick-action-btn" onclick="dashboard.takeAssessment()">
                         <span class="icon">📊</span>
                         <span>Take Assessment</span>
                     </button>
-                    <button class="quick-action-btn" onclick="viewProgress()">
+                    <button class="quick-action-btn" onclick="dashboard.viewProgress()">
                         <span class="icon">📈</span>
                         <span>View Progress</span>
                     </button>
@@ -500,290 +500,15 @@
         </div>
     </div>
 
-    <script>
-        let userId = null;
-        let userProfile = null;
-        let assessmentResults = null;
-        let learningPlan = null;
-        let practiceSessions = null;
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get user ID from URL params or localStorage
-            const urlParams = new URLSearchParams(window.location.search);
-            userId = urlParams.get('user_id') || localStorage.getItem('writetrack_user_id');
-
-            if (!userId) {
-                showError('No user found. Please complete an assessment first.');
-                return;
-            }
-
-            // Store user ID for future use
-            localStorage.setItem('writetrack_user_id', userId);
-            
-            loadDashboardData();
-        });
-
-        async function loadDashboardData() {
-            try {
-                // Load all dashboard data in parallel
-                await Promise.all([
-                    loadUserProfile(),
-                    loadAssessmentResults(),
-                    loadLearningPlan(),
-                    loadPracticeSessions()
-                ]);
-                
-                updateDashboardDisplay();
-                
-            } catch (error) {
-                console.error('Error loading dashboard:', error);
-                showError('Failed to load dashboard data. Please try again.');
-            }
-        }
-
-        async function loadUserProfile() {
-            try {
-                const response = await fetch(`/api/writepath/profile/${userId}`);
-                if (response.ok) {
-                    userProfile = await response.json();
-                }
-            } catch (error) {
-                console.error('Error loading profile:', error);
-            }
-        }
-
-        async function loadAssessmentResults() {
-            try {
-                const response = await fetch(`/api/writepath/results/${userId}`);
-                if (response.ok) {
-                    assessmentResults = await response.json();
-                }
-            } catch (error) {
-                console.error('Error loading assessment results:', error);
-            }
-        }
-
-        async function loadLearningPlan() {
-            try {
-                const response = await fetch(`/api/writepath/plan/${userId}`);
-                if (response.ok) {
-                    learningPlan = await response.json();
-                }
-            } catch (error) {
-                console.error('Error loading learning plan:', error);
-            }
-        }
-
-        async function loadPracticeSessions() {
-            try {
-                const response = await fetch(`/api/writenow/sessions/${userId}`);
-                if (response.ok) {
-                    practiceSessions = await response.json();
-                }
-            } catch (error) {
-                console.error('Error loading practice sessions:', error);
-            }
-        }
-
-        function updateDashboardDisplay() {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('dashboardContent').style.display = 'block';
-
-            // Update stats grid
-            updateStatsGrid();
-
-            // Update profile section
-            updateProfileSection();
-
-            // Update learning plan section
-            updateLearningPlanSection();
-
-            // Update assessment section
-            updateAssessmentSection();
-
-            // Update practice section
-            updatePracticeSection();
-        }
-
-        function updateStatsGrid() {
-            // Proficiency score
-            if (assessmentResults?.latest_assessment?.proficiency_score) {
-                document.getElementById('proficiencyScore').textContent = assessmentResults.latest_assessment.proficiency_score;
-            }
-
-            // Proficiency level
-            if (userProfile?.proficiency_level) {
-                document.getElementById('proficiencyLevel').textContent = 
-                    userProfile.proficiency_level.charAt(0).toUpperCase() + userProfile.proficiency_level.slice(1);
-            }
-
-            // Learning plan progress
-            if (learningPlan?.progress?.completed_days) {
-                const completed = learningPlan.progress.completed_days.length;
-                document.getElementById('completedDays').textContent = `${completed}/7`;
-            }
-
-            // Practice average
-            if (practiceSessions?.average_score) {
-                document.getElementById('practiceScore').textContent = practiceSessions.average_score;
-            }
-        }
-
-        function updateProfileSection() {
-            const profileDetails = document.getElementById('profileDetails');
-            
-            if (userProfile) {
-                const goals = userProfile.learning_goals ? userProfile.learning_goals.join(', ') : 'None specified';
-                profileDetails.innerHTML = `
-                    <div class="info-item">
-                        <span class="label">Type:</span>
-                        <span class="value">${userProfile.user_type.toUpperCase()}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Level:</span>
-                        <span class="value">${userProfile.proficiency_level || 'Not assessed'}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Goals:</span>
-                        <span class="value">${goals}</span>
-                    </div>
-                `;
-            } else {
-                profileDetails.innerHTML = '<p>Loading profile...</p>';
-            }
-        }
-
-        function updateLearningPlanSection() {
-            const summary = document.getElementById('learningPlanSummary');
-            const actionBtn = document.getElementById('planActionBtn');
-            
-            if (learningPlan?.learning_plan) {
-                const progress = learningPlan.progress || { completed_days: [], completion_percentage: 0 };
-                summary.innerHTML = `
-                    <div class="plan-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${progress.completion_percentage || 0}%"></div>
-                        </div>
-                        <p>${progress.completed_days?.length || 0} of 7 days completed</p>
-                        <p class="plan-title">${learningPlan.learning_plan.plan_title}</p>
-                    </div>
-                `;
-                actionBtn.textContent = 'View Plan';
-                actionBtn.onclick = viewLearningPlan;
-            } else if (assessmentResults?.latest_assessment) {
-                summary.innerHTML = '<p>Assessment completed! Generate your personalized learning plan.</p>';
-                actionBtn.textContent = 'Generate Plan';
-                actionBtn.onclick = generatePlan;
-            }
-        }
-
-        function updateAssessmentSection() {
-            const summary = document.getElementById('assessmentSummary');
-            
-            if (assessmentResults?.latest_assessment) {
-                const assessment = assessmentResults.latest_assessment;
-                const weakAreas = assessment.weak_areas || [];
-                
-                summary.innerHTML = `
-                    <div class="assessment-score">
-                        <span class="score-badge">${assessment.proficiency_score}/30</span>
-                        <span class="level-badge">${assessment.analysis_result?.proficiency_level || 'N/A'}</span>
-                    </div>
-                    <div class="weak-areas">
-                        <p><strong>Focus Areas:</strong> ${weakAreas.slice(0, 3).join(', ')}</p>
-                    </div>
-                `;
-            } else {
-                summary.innerHTML = '<p>No assessment completed yet. Take an assessment to get started!</p>';
-            }
-        }
-
-        function updatePracticeSection() {
-            const summary = document.getElementById('practiceSummary');
-            
-            if (practiceSessions?.recent_sessions?.length > 0) {
-                const recentSession = practiceSessions.recent_sessions[0];
-                summary.innerHTML = `
-                    <div class="practice-stats">
-                        <p><strong>Total Sessions:</strong> ${practiceSessions.total_sessions}</p>
-                        <p><strong>Average Score:</strong> ${practiceSessions.average_score}/30</p>
-                        <p><strong>Last Session:</strong> ${new Date(recentSession.timestamp).toLocaleDateString()}</p>
-                    </div>
-                `;
-            }
-        }
-
-        // Navigation functions
-        function takeAssessment() {
-            window.location.href = '/assessment.html' + (userId ? `?user_id=${userId}` : '');
-        }
-
-        function generatePlan() {
-            if (!assessmentResults?.latest_assessment) {
-                alert('Please complete an assessment first to generate a learning plan.');
-                takeAssessment();
-                return;
-            }
-            
-            // Show loading state
-            const actionBtn = document.getElementById('planActionBtn');
-            actionBtn.textContent = 'Generating...';
-            actionBtn.disabled = true;
-            
-            // Generate plan and redirect
-            fetch('/api/writepath/generate-plan', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: userId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.learning_plan) {
-                    window.location.href = `/writepath/plan.html?user_id=${userId}`;
-                } else {
-                    throw new Error('Failed to generate plan');
-                }
-            })
-            .catch(error => {
-                console.error('Error generating plan:', error);
-                alert('Failed to generate learning plan. Please try again.');
-                actionBtn.textContent = 'Generate Plan';
-                actionBtn.disabled = false;
-            });
-        }
-
-        function viewLearningPlan() {
-            if (learningPlan?.learning_plan) {
-                window.location.href = `/writepath/plan.html?user_id=${userId}`;
-            } else {
-                generatePlan();
-            }
-        }
-
-        function startPractice() {
-            window.location.href = `/index.html?user_id=${userId}`;
-        }
-
-        function viewFullResults() {
-            if (assessmentResults?.latest_assessment) {
-                // Could create a detailed results page or show modal
-                alert('Detailed results view coming soon!');
-            } else {
-                takeAssessment();
-            }
-        }
-
-        function viewProgress() {
-            // Could create a progress tracking page
-            alert('Detailed progress tracking coming soon!');
-        }
-
-        function showError(message) {
-            document.getElementById('loadingState').style.display = 'none';
-            const errorState = document.getElementById('errorState');
-            errorState.querySelector('p').textContent = message;
-            errorState.style.display = 'block';
-        }
-    </script>
+    <!-- JavaScript Modules (Load in Order) -->
+    <!-- Core modules first -->
+    <script src="js/api-client.js"></script>
+    <script src="js/user-manager.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    
+    <!-- Page-specific module -->
+    <script src="js/dashboard.js"></script>
+    
+    <!-- All dashboard logic is now in dashboard.js module -->
 </body>
 </html> 

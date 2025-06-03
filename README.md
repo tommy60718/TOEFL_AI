@@ -45,45 +45,144 @@ Write Track Lite/
 │       └── plan.html          # 7-day learning plan view
 ├── backend/
 │   ├── node/
+│   │   ├── package.json       # Node.js dependencies
 │   │   └── server.js          # Express API gateway
 │   └── python/
+│       ├── requirements.txt   # Python dependencies
 │       └── main.py            # FastAPI + AI processing
 └── docs/                      # Documentation
 ```
 
-## 🛠️ Setup Instructions
+## 🛠️ Complete Setup Guide
 
-### Prerequisites
-- Node.js 14+
-- Python 3.8+
-- Google Gemini API key
+### 📋 Prerequisites
 
-### 1. Python Backend Setup
+**Required Software:**
+- **Node.js**: Version 14.0 or higher ([Download](https://nodejs.org/))
+- **Python**: Version 3.8 or higher ([Download](https://python.org/downloads/))
+- **Git**: For cloning the repository ([Download](https://git-scm.com/))
+- **Google Gemini API Key**: Get from [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+
+### 🚀 Installation Steps
+
+#### 1. Clone the Project
 
 ```bash
+git clone <repository-url>
+cd TOEFL_Learning
+```
+
+#### 2. Python Backend Setup
+
+```bash
+# Navigate to Python backend
 cd backend/python
-pip install fastapi uvicorn python-dotenv google-generativeai pydantic
-echo "GEMINI_API_KEY=your_actual_api_key" > .env
+
+# Create virtual environment (recommended)
+python -m venv venv
+
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create environment file
+echo "GEMINI_API_KEY=your_actual_gemini_api_key_here" > .env
+
+# Test the backend
 python main.py
 ```
 
-### 2. Node.js Backend Setup
+**Expected Output:**
+```
+INFO:     Started server process [xxxxx]
+INFO:     Waiting for application startup.
+Database initialized successfully!
+INFO:     Uvicorn running on http://0.0.0.0:8000
+```
+
+#### 3. Node.js Backend Setup
+
+**Open a new terminal window/tab:**
 
 ```bash
+# Navigate to Node.js backend
 cd backend/node
-npm install express cors node-fetch
+
+# Install dependencies
+npm install
+
+# Start the server
 npm start
 ```
 
-### 3. Access the Platform
+**Expected Output:**
+```
+TOEFL Writing Practice server running on port 3000
+```
 
-Open browser: `http://localhost:3000`
+#### 4. Verify Setup
 
-**Complete User Journey:**
-1. Take Assessment → `http://localhost:3000/assessment.html`
-2. View Dashboard → `http://localhost:3000/dashboard.html`
-3. Follow Learning Plan → `http://localhost:3000/writepath/plan.html`
-4. Practice Writing → `http://localhost:3000/index.html`
+**Test the complete system:**
+
+1. **Open your browser** and navigate to: `http://localhost:3000/assessment.html`
+1-2. Use ChatGPT to generate your own answer and submit it to the system.
+2. **Check API health**: `http://localhost:3000/api/health` (Under development)
+3. **Check Python backend**: `http://localhost:8000/docs` (FastAPI documentation)
+
+### 🔧 Development Mode
+
+For development with auto-reload:
+
+```bash
+# Terminal 1: Python backend with auto-reload
+cd backend/python
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Terminal 2: Node.js backend with auto-reload
+cd backend/node
+npm run dev
+```
+
+### 🌐 Getting Your Gemini API Key
+
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the generated key
+5. Add it to your `.env` file in `backend/python/`
+
+
+### 🔍 Troubleshooting
+
+**Common Issues:**
+
+1. **Port already in use:**
+   ```bash
+   # Kill process on port 3000
+   lsof -ti:3000 | xargs kill -9
+   # Kill process on port 8000
+   lsof -ti:8000 | xargs kill -9
+   ```
+
+2. **Gemini API errors:**
+   - Verify API key is correct in `.env` file
+   - Check API quotas in Google Console
+   - Ensure billing is enabled for your Google account
+
+
+### 🎯 Complete User Journey
+
+**Recommended Testing Flow:**
+1. **Assessment**: `http://localhost:3000/assessment.html`
+2. **Dashboard**: `http://localhost:3000/dashboard.html`
+3. **Learning Plan**: `http://localhost:3000/writepath/plan.html`
+4. **Practice**: `http://localhost:3000/index.html`
 
 ## 💫 User Experience Flow
 
@@ -134,14 +233,6 @@ PUT  /api/writepath/plan/progress  # Update progress
 GET  /api/writenow/question/:id    # Get personalized question
 POST /api/writenow/feedback        # Enhanced feedback
 GET  /api/writenow/sessions/:id    # Practice history
-```
-
-## 🔧 Development
-
-```bash
-# Development mode with auto-reload
-cd backend/python && python main.py
-cd backend/node && npm run dev
 ```
 
 ## 📊 Success Metrics

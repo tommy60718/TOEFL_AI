@@ -332,7 +332,7 @@
                 <div class="question-text" id="question">
                     Loading your personalized question...
                 </div>
-                <button id="loadQuestionBtn" class="submit-btn" onclick="loadPersonalizedQuestion()" style="margin-bottom: 20px; display: none;">
+                <button id="loadQuestionBtn" class="submit-btn" onclick="practice.loadNewQuestion()" style="margin-bottom: 20px; display: none;">
                     Get New Question
                 </button>
             </div>
@@ -341,7 +341,7 @@
                 <h2>Your Response</h2>
                 <textarea id="userAnswer" 
                           placeholder="Type your answer here... Aim for 300-350 words for a complete response."></textarea>
-                <button id="submitBtn" class="submit-btn" onclick="submitAnswer()">
+                <button id="submitBtn" class="submit-btn" onclick="practice.submitAnswer()">
                     Submit for Personalized AI Review
                 </button>
             </div>
@@ -356,219 +356,15 @@
         </div>
     </div>
 
-    <script>
-        let userId = null;
-        let currentQuestion = null;
-        let processingTimer;
-        let secondsCount = 0;
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get user ID from URL params or localStorage
-            const urlParams = new URLSearchParams(window.location.search);
-            userId = urlParams.get('user_id') || localStorage.getItem('writetrack_user_id');
-
-            if (userId) {
-                loadUserContext();
-                loadPersonalizedQuestion();
-            } else {
-                // Use default question for anonymous users
-                document.getElementById('question').textContent = 
-                    "Do you agree or disagree with the following statement? Modern technology has made life more complicated. Use specific reasons and examples to support your answer.";
-                currentQuestion = {
-                    question_id: "1",
-                    question_text: document.getElementById('question').textContent,
-                    difficulty_level: "intermediate"
-                };
-            }
-        });
-
-        async function loadUserContext() {
-            try {
-                const response = await fetch(`/api/writepath/profile/${userId}`);
-                if (response.ok) {
-                    const profile = await response.json();
-                    const contextDiv = document.getElementById('userContext');
-                    const welcomeText = document.getElementById('userWelcome');
-                    
-                    welcomeText.textContent = `Welcome back! Practicing for ${profile.user_type.toUpperCase()} | Level: ${profile.proficiency_level || 'Assessing'}`;
-                    contextDiv.style.display = 'block';
-                }
-            } catch (error) {
-                console.log('Could not load user context:', error);
-            }
-        }
-
-        async function loadPersonalizedQuestion() {
-            if (!userId) return;
-
-            try {
-                const response = await fetch(`/api/writenow/question/${userId}`);
-                if (response.ok) {
-                    currentQuestion = await response.json();
-                    
-                    // Update question display
-                    document.getElementById('question').textContent = currentQuestion.question_text;
-                    
-                    // Show question metadata
-                    const metaDiv = document.getElementById('questionMeta');
-                    document.getElementById('selectedFor').textContent = currentQuestion.selected_for.join(', ');
-                    document.getElementById('difficultyLevel').textContent = currentQuestion.difficulty_level;
-                    metaDiv.style.display = 'block';
-                    
-                    // Show load new question button
-                    document.getElementById('loadQuestionBtn').style.display = 'inline-block';
-                } else {
-                    console.error('Failed to load personalized question');
-                }
-            } catch (error) {
-                console.error('Error loading personalized question:', error);
-            }
-        }
-
-        async function submitAnswer() {
-            const answer = document.getElementById('userAnswer').value;
-            if (!answer.trim()) {
-                alert("Please type your answer before submitting");
-                return;
-            }
-            
-            // Show loading indicator and start timer
-            const loadingIndicator = document.getElementById('loading-indicator');
-            const submitBtn = document.getElementById('submitBtn');
-            const secondsCounter = document.getElementById('seconds-counter');
-            
-            loadingIndicator.style.display = 'block';
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
-            secondsCount = 0;
-            secondsCounter.textContent = secondsCount;
-            
-            processingTimer = setInterval(() => {
-                secondsCount++;
-                secondsCounter.textContent = secondsCount;
-            }, 1000);
-            
-            try {
-                let response;
-                
-                if (userId && currentQuestion) {
-                    // Use enhanced feedback for registered users
-                    response = await fetch('/api/writenow/feedback', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ 
-                            user_id: userId,
-                            user_answer: answer,
-                            question_id: currentQuestion.question_id
-                        })
-                    });
-                } else {
-                    // Use original feedback for anonymous users
-                    response = await fetch('/submit', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ 
-                        answer,
-                            questionId: currentQuestion?.question_id || "1"
-                    })
-                });
-                }
-                
-                // Stop timer and hide loading indicator
-                clearInterval(processingTimer);
-                loadingIndicator.style.display = 'none';
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit for Personalized AI Review';
-                
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                
-                const feedback = await response.json();
-                displayFeedback(feedback, userId !== null);
-            } catch (error) {
-                // Stop timer and hide loading indicator on error too
-                clearInterval(processingTimer);
-                loadingIndicator.style.display = 'none';
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit for Personalized AI Review';
-                
-                console.error('Error:', error);
-                alert("Failed to submit answer. Please try again later.");
-            }
-        }
-
-        function displayFeedback(feedback, isPersonalized = false) {
-            const feedbackDiv = document.getElementById('feedback');
-            feedbackDiv.style.display = 'block';
-            
-            try {
-                // Parse feedback if it's a string (JSON)
-                const feedbackData = typeof feedback === 'string' ? JSON.parse(feedback) : feedback;
-                
-                let correctionsHTML = '';
-                if (feedbackData.corrections && feedbackData.corrections.length > 0) {
-                    correctionsHTML = '<div class="feedback-list"><h4>✏️ Corrections</h4><ul>';
-                    feedbackData.corrections.forEach(correction => {
-                        // Handle both string and object corrections
-                        const correctionText = typeof correction === 'string' ? correction : 
-                                             (correction.text || correction.message || JSON.stringify(correction));
-                        correctionsHTML += `<li>${correctionText}</li>`;
-                    });
-                    correctionsHTML += '</ul></div>';
-                }
-                
-                let suggestionsHTML = '<div class="feedback-list"><h4>💡 Suggestions for Improvement</h4><ul>';
-                feedbackData.suggestions.forEach(suggestion => {
-                    // Handle both string and object suggestions
-                    const suggestionText = typeof suggestion === 'string' ? suggestion : 
-                                         (suggestion.text || suggestion.message || JSON.stringify(suggestion));
-                    suggestionsHTML += `<li>${suggestionText}</li>`;
-                });
-                suggestionsHTML += '</ul></div>';
-                
-                let personalizedSection = '';
-                if (isPersonalized) {
-                    let personalizedTipsHTML = '';
-                    if (feedbackData.personalized_tips) {
-                        personalizedTipsHTML = '<div class="feedback-list"><h4>🎯 Personalized Tips</h4><ul>';
-                        feedbackData.personalized_tips.forEach(tip => {
-                            const tipText = typeof tip === 'string' ? tip : 
-                                          (tip.text || tip.message || JSON.stringify(tip));
-                            personalizedTipsHTML += `<li>${tipText}</li>`;
-                        });
-                        personalizedTipsHTML += '</ul></div>';
-                    }
-                    
-                    let progressNotesHTML = '';
-                    if (feedbackData.progress_notes) {
-                        progressNotesHTML = `<div class="feedback-list"><h4>📈 Progress Notes</h4><p style="color: #4b5563; line-height: 1.6;">${feedbackData.progress_notes}</p></div>`;
-                    }
-                    
-                    personalizedSection = personalizedTipsHTML + progressNotesHTML;
-                }
-                
-                feedbackDiv.innerHTML = `
-                    <div class="feedback-content">
-                        <h3>📊 ${isPersonalized ? 'Personalized ' : ''}AI Feedback Results</h3>
-                        <div class="score">Score: ${feedbackData.score}/30</div>
-                        ${correctionsHTML}
-                            ${suggestionsHTML}
-                        ${personalizedSection}
-                    </div>
-                `;
-            } catch (e) {
-                feedbackDiv.innerHTML = `
-                    <div class="feedback-content">
-                        <h3>📊 AI Feedback Results</h3>
-                        <div style="background: white; border-radius: 8px; padding: 20px;">${feedback}</div>
-                    </div>
-                `;
-            }
-            
-            // Smooth scroll to feedback
-            feedbackDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    </script>
+    <!-- JavaScript Modules (Load in Order) -->
+    <!-- Core modules first -->
+    <script src="js/api-client.js"></script>
+    <script src="js/user-manager.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    
+    <!-- Page-specific module -->
+    <script src="js/practice.js"></script>
+    
+    <!-- All practice logic is now in practice.js module -->
 </body>
 </html> 
