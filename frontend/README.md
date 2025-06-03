@@ -27,7 +27,7 @@ frontend/
 
 ## 🏃‍♂️ Quick Start
 
-### **Run Tests**
+### **Run Tests (Under Development)**
 ```bash
 # Open in browser to test modules
 open frontend/tests/test-modules.html
