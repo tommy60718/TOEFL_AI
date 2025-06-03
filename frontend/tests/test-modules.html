@@ -176,10 +176,10 @@
         <p style="text-align: center; color: #666; margin-bottom: 30px;">
             Verify that all JavaScript modules are loaded and functioning correctly
         </p>
-        
-        <div class="test-section">
-            <h3>📦 Module Loading Status</h3>
-            <div id="moduleStatus">
+    
+    <div class="test-section">
+        <h3>📦 Module Loading Status</h3>
+        <div id="moduleStatus">
                 <div class="module-row">
                     <span><strong>API Client:</strong></span>
                     <span id="apiClientStatus" class="status loading">Checking...</span>
@@ -208,24 +208,24 @@
                     <span><strong>Learning Plan Module:</strong></span>
                     <span id="learningPlanStatus" class="status loading">Checking...</span>
                 </div>
-            </div>
         </div>
+    </div>
 
-        <div class="test-section">
+    <div class="test-section">
             <h3>🔧 Functionality Tests</h3>
             <p>Test core module functionality:</p>
-            <button onclick="testUserManager()">Test User Manager</button>
-            <button onclick="testUIHelpers()">Test UI Helpers</button>
-            <button onclick="testAPIClient()">Test API Client</button>
+        <button onclick="testUserManager()">Test User Manager</button>
+        <button onclick="testUIHelpers()">Test UI Helpers</button>
+        <button onclick="testAPIClient()">Test API Client</button>
             <button onclick="testAllModules()">Run All Tests</button>
-            
+        
             <div id="testResults">
                 <p style="color: #666; text-align: center;">Click a test button to run functionality tests</p>
             </div>
-        </div>
+    </div>
 
-        <div class="test-section">
-            <h3>🔗 Navigation Tests</h3>
+    <div class="test-section">
+        <h3>🔗 Navigation Tests</h3>
             <p>Test the modular navigation system:</p>
             <div class="nav-grid">
                 <a href="../assessment.html" class="nav-btn">📝 Assessment</a>
@@ -288,7 +288,7 @@
                 const userId = userManager.getUserId();
                 results.innerHTML = `
                     <div class="success-msg">
-                        <h4>✅ User Manager Test Results:</h4>
+                    <h4>✅ User Manager Test Results:</h4>
                         <p><strong>Current User ID:</strong> ${userId || 'None (anonymous)'}</p>
                         <p><strong>Is Authenticated:</strong> ${userManager.isAuthenticated()}</p>
                         <p><strong>Navigation methods:</strong> Available (navigateToAssessment, navigateToDashboard, etc.)</p>
@@ -313,7 +313,7 @@
                 
                 results.innerHTML = `
                     <div class="success-msg">
-                        <h4>✅ UI Helpers Test Results:</h4>
+                    <h4>✅ UI Helpers Test Results:</h4>
                         <p><strong>Format Score:</strong> ${formattedScore}</p>
                         <p><strong>Format Level:</strong> ${formattedLevel}</p>
                         <p><strong>Format Progress:</strong> ${formattedProgress}</p>
@@ -343,7 +343,7 @@
                 
                 results.innerHTML = `
                     <div class="success-msg">
-                        <h4>✅ API Client Test Results:</h4>
+                    <h4>✅ API Client Test Results:</h4>
                         <p><strong>API Client instance:</strong> Created successfully</p>
                         <p><strong>Base URL:</strong> ${apiClient.baseURL || '(relative)'}</p>
                         <p><strong>Available methods:</strong> ${availableMethods.length}/9 methods loaded</p>
@@ -381,16 +381,16 @@
                                 <br>
                                 <p><strong>🚀 Your frontend is ready for production!</strong></p>
                             </div>
-                        `;
+                `;
                     }, 1500);
-                } catch (error) {
+            } catch (error) {
                     results.innerHTML += `
                         <div class="error-msg">
                             <h4>❌ Test Suite Failed:</h4>
                             <p>${error.message}</p>
                         </div>
                     `;
-                }
+            }
             }, 100);
         }
 
