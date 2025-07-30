@@ -31,7 +31,7 @@ if not api_key:
     api_key = "YOUR_GEMINI_API_KEY"  # Replace with your actual API key if not using env variables
 
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-2.5-flash-preview-04-17')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # Pydantic Models
 class SubmissionRequest(BaseModel):
