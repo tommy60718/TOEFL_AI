@@ -1,4 +1,4 @@
-# AI-Powered TOEFL Writing Practice Framework 📝
+# AI-Powered TOEFL Writing Assistant 📝
 
 A simple yet effective English learning platform for TOEFL writing practice with AI-powered feedback.
 
