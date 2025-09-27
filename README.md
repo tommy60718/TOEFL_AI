@@ -1,5 +1,13 @@
 # Write Track Lite - AI-Powered Personalized English Writing Platform 🎯
 
+## 📄 Project Abstract
+
+Write Track combines LLM and RAG technology to analyze individual writing patterns, creating personalized learning paths and feedback. The platform builds comprehensive writing profiles from user history, enabling systematic improvement for professionals, test-prep students, and content creators.
+
+---
+
+## 🎯 Platform Overview
+
 A comprehensive English writing learning platform that personalizes your learning journey through AI-powered assessment, learning path generation, and intelligent practice feedback.
 
 ## 🚀 Features
