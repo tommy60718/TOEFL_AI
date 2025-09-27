@@ -1,0 +1,173 @@
+graph TB
+    subgraph "🎯 Write Track Lite - AI-Powered English Writing Platform"
+        
+        subgraph "👤 User Experience Layer"
+            U1[📱 Web Browser]
+            U2[🌐 User Interface]
+        end
+        
+        subgraph "🌐 Frontend Application (1,255 LOC)"
+            subgraph "📄 User Interface Pages"
+                P1["📝 Assessment<br/>assessment.html<br/>4-Step Proficiency Evaluation"]
+                P2["📊 Dashboard<br/>dashboard.html<br/>Progress Overview & Analytics"]
+                P3["✍️ Practice<br/>index.html<br/>AI-Powered Writing Practice"]
+                P4["📅 Learning Plan<br/>plan.html<br/>7-Day Improvement Program"]
+            end
+            
+            subgraph "📦 JavaScript Architecture (7 Modules)"
+                subgraph "🔧 Core Infrastructure"
+                    JS1["🌐 API Client<br/>Centralized Communication<br/>113 lines"]
+                    JS2["👤 User Manager<br/>State & Navigation<br/>100 lines"]
+                    JS3["🎨 UI Helpers<br/>Utilities & Formatting<br/>299 lines"]
+                end
+                
+                subgraph "🖥️ Page Controllers"
+                    JS4["📝 Assessment Logic<br/>187 lines"]
+                    JS5["📊 Dashboard Logic<br/>224 lines"]
+                    JS6["✍️ Practice Logic<br/>210 lines"]
+                    JS7["📅 Plan Logic<br/>209 lines"]
+                end
+            end
+        end
+        
+        subgraph "⚙️ Backend Infrastructure (1,359 LOC)"
+            subgraph "🟢 Node.js Express Gateway<br/>Port 3000 (278 LOC)"
+                N1["🚪 API Gateway<br/>Request Routing"]
+                N2["📁 Static File Server<br/>Frontend Hosting"]
+                N3["🔄 Request Proxy<br/>Forward to Python"]
+            end
+            
+            subgraph "🐍 Python FastAPI Engine<br/>Port 8000 (1,081 LOC)"
+                subgraph "🤖 AI Processing Core"
+                    P5["🧠 Assessment Engine<br/>Writing Analysis"]
+                    P6["📋 Learning Plan Generator<br/>7-Day Programs"]
+                    P7["💬 Feedback Engine<br/>Personalized Responses"]
+                end
+                
+                subgraph "📡 API Endpoints"
+                    A1["👤 User Profile APIs<br/>Create, Read, Update"]
+                    A2["📝 Assessment APIs<br/>Analyze & Results"]
+                    A3["📅 Learning Path APIs<br/>Generate & Track"]
+                    A4["✍️ Practice APIs<br/>Questions & Feedback"]
+                end
+            end
+        end
+        
+        subgraph "🗄️ Data Storage Layer"
+            subgraph "📊 SQLite Database (6 Tables)"
+                D1["👤 user_profiles<br/>User Info & Goals"]
+                D2["📝 assessment_results<br/>AI Analysis & Scores"]
+                D3["📅 learning_paths<br/>7-Day Plans & Progress"]
+                D4["✍️ practice_sessions<br/>Practice History"]
+                D5["❓ questions_bank<br/>Writing Prompts"]
+                D6["📄 submissions<br/>Writing Samples"]
+            end
+        end
+        
+        subgraph "☁️ External AI Service"
+            AI["🚀 Google Gemini AI<br/>gemini-2.5-flash-preview-04-17<br/>• Writing Assessment<br/>• Learning Plan Generation<br/>• Personalized Feedback"]
+        end
+        
+        subgraph "🔄 Data Flow Examples"
+            F1["1️⃣ User Assessment<br/>Writing → Analysis → Proficiency Score"]
+            F2["2️⃣ Learning Plan<br/>Assessment → AI → 7-Day Program"]
+            F3["3️⃣ Practice Session<br/>Question → Answer → Feedback"]
+        end
+    end
+    
+    %% User Flow Connections
+    U1 --> U2
+    U2 --> P1
+    U2 --> P2
+    U2 --> P3
+    U2 --> P4
+    
+    %% Frontend Internal Connections
+    P1 --> JS4
+    P2 --> JS5
+    P3 --> JS6
+    P4 --> JS7
+    
+    JS4 --> JS1
+    JS5 --> JS1
+    JS6 --> JS1
+    JS7 --> JS1
+    
+    JS1 --> JS2
+    JS1 --> JS3
+    
+    %% Frontend to Backend
+    JS1 --> N1
+    N1 --> N2
+    N1 --> N3
+    N3 --> A1
+    N3 --> A2
+    N3 --> A3
+    N3 --> A4
+    
+    %% Backend Internal Connections
+    A1 --> P5
+    A2 --> P5
+    A3 --> P6
+    A4 --> P7
+    
+    %% AI Integration
+    P5 --> AI
+    P6 --> AI
+    P7 --> AI
+    
+    %% Database Connections
+    A1 --> D1
+    A2 --> D2
+    A3 --> D3
+    A4 --> D4
+    P5 --> D5
+    P7 --> D6
+    
+    %% Data Flow Examples
+    F1 --> P5
+    F2 --> P6
+    F3 --> P7
+    
+    %% Styling for Visual Appeal
+    style U1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style U2 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    
+    style P1 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style P2 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style P3 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style P4 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    
+    style JS1 fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style JS2 fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style JS3 fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style JS4 fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style JS5 fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style JS6 fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    style JS7 fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    
+    style N1 fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style N2 fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style N3 fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    
+    style P5 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style P6 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style P7 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    
+    style A1 fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style A2 fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style A3 fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style A4 fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    
+    style D1 fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    style D2 fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    style D3 fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    style D4 fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    style D5 fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    style D6 fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    
+    style AI fill:#ffebee,stroke:#d32f2f,stroke-width:3px
+    
+    style F1 fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    style F2 fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    style F3 fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px

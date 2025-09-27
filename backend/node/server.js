@@ -219,5 +219,61 @@ app.get('/questions/:id', (req, res) => {
     }
 });
 
+// Week 4: WriteNow Practice Framework APIs
+app.get('/api/writenow/question/:userId', async (req, res) => {
+    try {
+        const response = await fetch(`http://localhost:8000/api/writenow/question/${req.params.userId}`);
+        
+        if (!response.ok) {
+            const error = await response.json();
+            return res.status(response.status).json(error);
+        }
+        
+        const result = await response.json();
+        res.json(result);
+    } catch (error) {
+        console.error('Personalized question retrieval error:', error);
+        res.status(500).json({ error: 'Failed to get personalized question', details: error.message });
+    }
+});
+
+app.post('/api/writenow/feedback', async (req, res) => {
+    try {
+        const response = await fetch('http://localhost:8000/api/writenow/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(req.body)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            return res.status(response.status).json(error);
+        }
+        
+        const result = await response.json();
+        res.json(result);
+    } catch (error) {
+        console.error('Enhanced feedback error:', error);
+        res.status(500).json({ error: 'Enhanced feedback failed', details: error.message });
+    }
+});
+
+app.get('/api/writenow/sessions/:userId', async (req, res) => {
+    try {
+        const response = await fetch(`http://localhost:8000/api/writenow/sessions/${req.params.userId}`);
+        
+        if (!response.ok) {
+            const error = await response.json();
+            return res.status(response.status).json(error);
+        }
+        
+        const result = await response.json();
+        res.json(result);
+    } catch (error) {
+        console.error('Practice sessions retrieval error:', error);
+        res.status(500).json({ error: 'Failed to get practice sessions', details: error.message });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Write Track Lite server running on port ${PORT}`)); 

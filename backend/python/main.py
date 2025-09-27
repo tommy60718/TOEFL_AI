@@ -31,7 +31,7 @@ if not api_key:
     api_key = "YOUR_GEMINI_API_KEY"  # Replace with your actual API key if not using env variables
 
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-2.5-flash-preview-04-17')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # Pydantic Models
 class SubmissionRequest(BaseModel):
@@ -55,6 +55,16 @@ class LearningPathUpdate(BaseModel):
     user_id: str
     progress: Dict
     completed_tasks: List[str]
+
+class PracticeSessionRequest(BaseModel):
+    user_id: str
+    session_type: str = "practice"
+    question_id: Optional[str] = None
+
+class EnhancedFeedbackRequest(BaseModel):
+    user_id: str
+    user_answer: str
+    question_id: str
 
 def get_system_prompt(user_answer, reference_answer):
     return f"""You are a TOEFL writing expert tutor. Analyze the following student's answer 
@@ -705,6 +715,232 @@ async def update_plan_progress(request: dict):
         
     except sqlite3.Error as e:
         print(f"Database error in update_plan_progress: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        conn.close()
+
+# Week 4: Practice Framework APIs
+@app.get("/api/writenow/question/{user_id}")
+async def get_personalized_question(user_id: str):
+    try:
+        conn = sqlite3.connect('toefl.db')
+        cursor = conn.cursor()
+        
+        # Get user profile and latest assessment
+        cursor.execute("""
+            SELECT proficiency_level, learning_goals FROM user_profiles WHERE id = ?
+        """, (user_id,))
+        profile_result = cursor.fetchone()
+        
+        if not profile_result:
+            raise HTTPException(status_code=404, detail="User profile not found")
+        
+        proficiency_level, learning_goals_json = profile_result
+        
+        # Get user's weak areas from latest assessment
+        cursor.execute("""
+            SELECT weak_areas FROM assessment_results 
+            WHERE user_id = ? ORDER BY timestamp DESC LIMIT 1
+        """, (user_id,))
+        assessment_result = cursor.fetchone()
+        
+        weak_areas = []
+        if assessment_result and assessment_result[0]:
+            weak_areas = json.loads(assessment_result[0])
+        
+        # Select appropriate question based on proficiency and weak areas
+        # Priority: match difficulty level and focus on weak areas
+        cursor.execute("""
+            SELECT id, question_text, reference_answer, learning_objectives, tags
+            FROM questions_bank 
+            WHERE difficulty_level = ? OR difficulty_level = 'general'
+            ORDER BY RANDOM() 
+            LIMIT 1
+        """, (proficiency_level or 'intermediate',))
+        
+        question_result = cursor.fetchone()
+        if not question_result:
+            raise HTTPException(status_code=404, detail="No suitable questions found")
+        
+        question = {
+            "question_id": str(question_result[0]),
+            "question_text": question_result[1],
+            "reference_answer": question_result[2],
+            "learning_objectives": json.loads(question_result[3]) if question_result[3] else [],
+            "tags": json.loads(question_result[4]) if question_result[4] else [],
+            "selected_for": weak_areas[:2] if weak_areas else ["general practice"],
+            "difficulty_level": proficiency_level or 'intermediate'
+        }
+        
+        return question
+        
+    except sqlite3.Error as e:
+        print(f"Database error in get_personalized_question: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        conn.close()
+
+@app.post("/api/writenow/feedback")
+async def get_enhanced_feedback(request: EnhancedFeedbackRequest):
+    try:
+        conn = sqlite3.connect('toefl.db')
+        cursor = conn.cursor()
+        
+        # Get user context
+        cursor.execute("""
+            SELECT proficiency_level FROM user_profiles WHERE id = ?
+        """, (request.user_id,))
+        profile_result = cursor.fetchone()
+        
+        cursor.execute("""
+            SELECT weak_areas, recommendations FROM assessment_results 
+            WHERE user_id = ? ORDER BY timestamp DESC LIMIT 1
+        """, (request.user_id,))
+        assessment_result = cursor.fetchone()
+        
+        # Get question details
+        cursor.execute("""
+            SELECT reference_answer FROM questions_bank WHERE id = ?
+        """, (request.question_id,))
+        question_result = cursor.fetchone()
+        
+        if not question_result:
+            raise HTTPException(status_code=404, detail="Question not found")
+        
+        # Build context-aware prompt
+        user_context = {
+            "proficiency_level": profile_result[0] if profile_result else "intermediate",
+            "weak_areas": json.loads(assessment_result[0]) if assessment_result and assessment_result[0] else [],
+            "recommendations": json.loads(assessment_result[1]) if assessment_result and assessment_result[1] else []
+        }
+        
+        enhanced_prompt = get_enhanced_feedback_prompt(
+            request.user_answer, 
+            question_result[0], 
+            user_context
+        )
+        
+        # Get AI feedback
+        response = model.generate_content(enhanced_prompt)
+        feedback_text = response.text
+        
+        # Clean and parse response
+        if feedback_text.startswith("```json") or feedback_text.startswith('```'):
+            feedback_text = feedback_text.replace('```json', '').replace('```', '').strip()
+        
+        try:
+            feedback_json = json.loads(feedback_text)
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"Error parsing enhanced feedback: {e}")
+            feedback_json = {
+                "corrections": ["Please review grammar and sentence structure."],
+                "suggestions": ["Focus on clarity and coherence.", "Expand your vocabulary range."],
+                "score": 15,
+                "personalized_tips": ["Continue practicing based on your learning plan."],
+                "progress_notes": "Keep working on your identified weak areas."
+            }
+        
+        # Store practice session
+        cursor.execute("""
+            INSERT INTO practice_sessions 
+            (user_id, session_type, questions_attempted, completion_status, performance_metrics)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            request.user_id,
+            "enhanced_practice",
+            json.dumps([request.question_id]),
+            "completed",
+            json.dumps({
+                "score": feedback_json.get("score", 15),
+                "weak_areas_addressed": user_context["weak_areas"][:2],
+                "feedback_type": "enhanced"
+            })
+        ))
+        
+        conn.commit()
+        print(f"Enhanced feedback provided and session stored for user: {request.user_id}")
+        
+        return feedback_json
+        
+    except Exception as e:
+        print(f"ERROR in get_enhanced_feedback: {e}")
+        raise HTTPException(status_code=500, detail=f"Enhanced feedback failed: {str(e)}")
+    finally:
+        conn.close()
+
+def get_enhanced_feedback_prompt(user_answer, reference_answer, user_context):
+    weak_areas_text = ", ".join(user_context["weak_areas"][:3]) if user_context["weak_areas"] else "general writing skills"
+    
+    return f"""You are a personalized TOEFL writing tutor. Analyze this student's answer with their specific learning context in mind.
+
+Student Context:
+- Proficiency Level: {user_context["proficiency_level"]}
+- Known Weak Areas: {weak_areas_text}
+- Current Learning Focus: {', '.join(user_context["recommendations"][:2]) if user_context["recommendations"] else "general improvement"}
+
+Student's Answer: {user_answer}
+Reference Answer: {reference_answer}
+
+Provide personalized feedback in this JSON format:
+{{
+    "corrections": [List of specific corrections focusing on the student's weak areas],
+    "suggestions": [Improvement suggestions tailored to their proficiency level],
+    "score": TOEFL score (0-30),
+    "personalized_tips": [2-3 specific tips based on their weak areas and level],
+    "progress_notes": "Brief note on how this relates to their learning journey",
+    "focus_areas": [Areas they should prioritize based on this writing sample]
+}}
+
+Focus especially on their known weak areas: {weak_areas_text}. 
+Adjust complexity of feedback to their {user_context["proficiency_level"]} level.
+Return ONLY the JSON object."""
+
+# Practice Session Management
+@app.get("/api/writenow/sessions/{user_id}")
+async def get_practice_sessions(user_id: str):
+    try:
+        conn = sqlite3.connect('toefl.db')
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT id, session_type, questions_attempted, completion_status, 
+                   performance_metrics, timestamp
+            FROM practice_sessions 
+            WHERE user_id = ? 
+            ORDER BY timestamp DESC 
+            LIMIT 10
+        """, (user_id,))
+        
+        results = cursor.fetchall()
+        sessions = []
+        
+        for result in results:
+            session = {
+                "session_id": result[0],
+                "session_type": result[1],
+                "questions_attempted": json.loads(result[2]) if result[2] else [],
+                "completion_status": result[3],
+                "performance_metrics": json.loads(result[4]) if result[4] else {},
+                "timestamp": result[5]
+            }
+            sessions.append(session)
+        
+        # Calculate basic statistics
+        total_sessions = len(sessions)
+        avg_score = 0
+        if sessions:
+            scores = [s["performance_metrics"].get("score", 0) for s in sessions if "score" in s["performance_metrics"]]
+            avg_score = sum(scores) / len(scores) if scores else 0
+        
+        return {
+            "user_id": user_id,
+            "total_sessions": total_sessions,
+            "average_score": round(avg_score, 1),
+            "recent_sessions": sessions
+        }
+        
+    except sqlite3.Error as e:
+        print(f"Database error in get_practice_sessions: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     finally:
         conn.close()
